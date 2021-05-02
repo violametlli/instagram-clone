@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import './App.css';
 import Post from './Post';
-import { storage, db } from "./firebase";
-import { Button, makeStyles } from "@material-ui/core";
+import { storage, db, auth } from "./firebase";
+import { Button,Input, makeStyles } from "@material-ui/core";
 import Modal from "@material-ui/core/Modal";
 
 
@@ -39,9 +39,36 @@ function App() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
 
 
+  useEffect(() => {
+    auth.onAuthStateChanged((authUser)=>{
+       //user has logged in
+     if(authUser){
+      console.log(authUser);
+      setUser(authUser);
 
+    if (authUser.displayName){
+
+    }
+    else{
+      //if we create a user
+      return authUser.updateProfile({
+        displayName:username,
+      });
+    }
+     }
+     
+     
+     else{
+//user has logged out
+    setUser(null);
+     }
+
+
+    })
+  }, [user, username])
 
 
   useEffect(() => {
@@ -56,10 +83,14 @@ function App() {
   }, []);
 
 
-
   const signUp = (event) => {
+    event.preventDefault();
+
+    auth.createUserWithEmailAndPassword(email,password)
+    .catch((error) => alert(error.message))
 
   }
+  
 
 
 
@@ -71,40 +102,41 @@ function App() {
         onClose={() => setOpen(false)}  >
 
         < div style={modalStyle} className={classes.paper}>
-
-          <center>
+        <form className="app__signup">
+            <center>
             <img className="app__headerImage" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzFj87v7cdZAMuQzMol5zsNpdwU87kaGE270YOjLf8vIklU9dfvQnZ_yKE5AiLvgttPA&usqp=CAU" />
-
-            {/* 
+            </center>
+            
             <Input
               placeholder="username"
-              type="text"
+              type="text" 
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+              onChange={(e) => setUsername(e.target.value)}/>
+            
             <Input
               placeholder="email"
               type="text"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+              onChange={(e) => setEmail(e.target.value)} />
+           
             <Input
               placeholder="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              onChange={(e) => setPassword(e.target.value)}/>
+            
 
-            <Button onClick={handleLogin}> Login </Button> */}
-
-          </center>
+            <Button onClick={signUp}> Login </Button>
+          
+         
+          </form>
         </  div>
       </Modal>
       <div className="app__header">
         <img className="app__headerImage" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzFj87v7cdZAMuQzMol5zsNpdwU87kaGE270YOjLf8vIklU9dfvQnZ_yKE5AiLvgttPA&usqp=CAU" />
       </div>
 
-      <Button onClick={() => setOpen(true)}> Sign Up </Button>
+      <Button type="submit" onClick={() => setOpen(true)}> Sign Up </Button>
 
       {
         posts.map(({ id, post }) => (
